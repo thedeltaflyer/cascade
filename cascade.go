@@ -21,10 +21,10 @@ import (
 	"sync"
 )
 
-// The current version of Cascade.
+// Version is the current version of Cascade.
 const Version string = "0.0.2"
 
-// The Cascade is the core structure of the cascade package. It contains all of the
+// Cascade is the core structure of the cascade package. It contains all of the
 // non-public resources used to maintain all tracked routines.
 type Cascade struct {
 	parent      *Cascade
@@ -50,13 +50,13 @@ type Cascade struct {
 	muErr       sync.Mutex
 }
 
-// The trackedContext struct manages any tracked Context items since we need to also track their "cancel" function.
+// trackedContext struct manages any tracked Context items since we need to also track their "cancel" function.
 type trackedContext struct {
 	context context.Context
 	cancel  func()
 }
 
-// For basic usage, this will create a Cascade that is fully-initialized and ready to go.
+// RootCascade creates a new Cascade that is fully-initialized and ready to go.
 // This Cascade also acts as the root cascade which means that it is the highest-up parent.
 //
 // Note about RootCascade and Errors
@@ -177,10 +177,7 @@ func (c *Cascade) WrapInLoop(f func()) {
 	}
 }
 
-// Wrap a function inside a loop. The function *MUST* not block, it will continue getting called until the Cascade is Killed or the function returns false
-// This should be implemented inside of a goroutine
-
-// GoInLoopWithBool wraps a function inside a loop and runs it as a tracked function as long as the
+// WrapInLoopWithBool wraps a function inside a loop and runs it as a tracked function as long as the
 // provided function returns `true`
 //
 // This is NOT a goroutine and will block until the provided function exits.
@@ -190,7 +187,7 @@ func (c *Cascade) WrapInLoop(f func()) {
 func (c *Cascade) WrapInLoopWithBool(f func() bool) {
 	c.Mark()
 	defer c.UnMark()
-	fDone := false
+	var fDone bool
 	for {
 		select {
 		case <-c.Dying():
@@ -293,14 +290,14 @@ func (c *Cascade) Done() <-chan interface{} {
 	return c.done
 }
 
-// Returns `true` if the Cascade has been cancelled or killed.
+// IsDead returns `true` if the Cascade has been cancelled or killed.
 func (c *Cascade) IsDead() bool {
 	c.muDead.RLock()
 	defer c.muDead.RUnlock()
 	return c.isDead
 }
 
-// Returns `true` if the Cascade has not been cancelled or killed.
+// Alive returns `true` if the Cascade has not been cancelled or killed.
 func (c *Cascade) Alive() bool {
 	return !c.IsDead()
 }

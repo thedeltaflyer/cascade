@@ -91,7 +91,7 @@ func (c *Cascade) Context(ctx context.Context) context.Context {
 	return tracked
 }
 
-func (c *Cascade) linkTrackedContext(ctx context.Context, child context.Context, cancel func()) {
+func (c *Cascade) linkTrackedContext(ctx context.Context, child interface{}, cancel func()) {
 	// Check to make sure that the cascade hasn't already died!
 	if c.IsDead() {
 		cancel()
@@ -99,7 +99,7 @@ func (c *Cascade) linkTrackedContext(ctx context.Context, child context.Context,
 	}
 
 	c.muCtx.Lock()
-	c.trackedCtx[ctx] = trackedContext{child, cancel}
+	c.trackedCtx[ctx] = trackedContext{child.(context.Context), cancel}
 
 	// Double-check that all the other tracked contexts are still ok
 	for ctx, tracked := range c.trackedCtx {

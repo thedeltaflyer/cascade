@@ -212,10 +212,16 @@ func TestCascade_ContextCancelFromCascade(t *testing.T) {
 	}
 }
 
+type contextKey string
+
+func (c contextKey) String() string {
+	return "context key " + string(c)
+}
+
 func TestCascade_ContextFromKilledCascade(t *testing.T) {
 	cas := RootCascade()
 	ctx := context.TODO()
-	ctxAlt := context.WithValue(ctx, "key", "val") // We need an alt context to force cleanup of stale contexts
+	ctxAlt := context.WithValue(ctx, contextKey("key"), "val") // We need an alt context to force cleanup of stale contexts
 
 	_ = cas.Context(ctx)
 

@@ -562,6 +562,11 @@ func TestCascade_Kill(t *testing.T) {
 		t.Error("Kill: Action3 was not executed!")
 	}
 	muAction3.Unlock()
+	select {
+	case <-cas.Done():
+	case <-time.After(time.Second / 2):
+		t.Error("Kill: Cascade didn't finish before timeout!")
+	}
 
 	verifyCascadeEndState(t, cas, false, 0, true, 2, false, 0, false)
 	verifyCascadeEndState(t, child, true, 0, true, 1, false, 0, false)

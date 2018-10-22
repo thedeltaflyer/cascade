@@ -1,4 +1,9 @@
 # Go Cascade
+[![Build Status](https://travis-ci.org/thedeltaflyer/cascade.svg)](https://travis-ci.org/thedeltaflyer/cascade)
+[![codecov](https://codecov.io/gh/thedeltaflyer/cascade/branch/master/graph/badge.svg)](https://codecov.io/gh/thedeltaflyer/cascade)
+[![Go Report Card](https://goreportcard.com/badge/github.com/thedeltaflyer/cascade)](https://goreportcard.com/report/github.com/thedeltaflyer/cascade)
+[![GoDoc](https://godoc.org/github.com/thedeltaflyer/cascade?status.svg)](https://godoc.org/github.com/thedeltaflyer/cascade)
+[![Release](https://img.shields.io/github/release/thedeltaflyer/cascade.svg)](https://github.com/thedeltaflyer/cascade/releases)
 
 Cascade is a system for assisting with goroutine lifecycles in a top-down fashion.
 
