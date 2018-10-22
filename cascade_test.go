@@ -466,7 +466,6 @@ func TestCascade_Kill(t *testing.T) {
 	muAction1 := sync.Mutex{}
 	muAction2 := sync.Mutex{}
 	muAction3 := sync.Mutex{}
-	waitForKill := make(chan struct{}, 0)
 
 	action1 := func() {
 		muAction1.Lock()
@@ -529,15 +528,7 @@ func TestCascade_Kill(t *testing.T) {
 		<-child.Dying()
 	}()
 
-	go func() {
-		cas.Kill()
-		close(waitForKill)
-	}()
-	select {
-	case <-waitForKill:
-	case <-time.After(1 * time.Second):
-		t.Error("Kill: Got stuck in Kill Command!")
-	}
+	go cas.Kill()
 	ok := didExitBeforeTime(cas, 1*time.Second)
 	if !ok {
 		t.Error("Kill: Got stuck in Kill!")
@@ -547,6 +538,11 @@ func TestCascade_Kill(t *testing.T) {
 		t.Error("Kill: Not all goroutines were killed!")
 	}
 	mu.Unlock()
+	select {
+	case <-cas.Done():
+	case <-time.After(time.Second / 2):
+		t.Error("Kill: Cascade didn't finish before timeout!")
+	}
 	muAction1.Lock()
 	if !didAction1 {
 		t.Error("Kill: Action1 was not executed!")
@@ -562,11 +558,6 @@ func TestCascade_Kill(t *testing.T) {
 		t.Error("Kill: Action3 was not executed!")
 	}
 	muAction3.Unlock()
-	select {
-	case <-cas.Done():
-	case <-time.After(time.Second / 2):
-		t.Error("Kill: Cascade didn't finish before timeout!")
-	}
 
 	verifyCascadeEndState(t, cas, false, 0, true, 2, false, 0, false)
 	verifyCascadeEndState(t, child, true, 0, true, 1, false, 0, false)
@@ -639,7 +630,6 @@ func TestCascade_Cancel(t *testing.T) {
 	muAction1 := sync.Mutex{}
 	muAction2 := sync.Mutex{}
 	muAction3 := sync.Mutex{}
-	waitForCancel := make(chan struct{}, 0)
 
 	action1 := func() {
 		muAction1.Lock()
@@ -705,15 +695,7 @@ func TestCascade_Cancel(t *testing.T) {
 		<-child.Dying()
 	}()
 
-	go func() {
-		cas.Cancel()
-		close(waitForCancel)
-	}()
-	select {
-	case <-waitForCancel:
-	case <-time.After(1 * time.Second):
-		t.Error("Cancel: Got stuck in Cancel Command!")
-	}
+	go cas.Cancel()
 	ok := didExitBeforeTime(cas, 1*time.Second)
 	if !ok {
 		t.Error("Cancel: Got stuck in Cancel!")
@@ -723,6 +705,11 @@ func TestCascade_Cancel(t *testing.T) {
 		t.Error("Cancel: Not all goroutines were killed!")
 	}
 	mu.Unlock()
+	select {
+	case <-cas.Done():
+	case <-time.After(time.Second / 2):
+		t.Error("Cancel: Cascade didn't finish before timeout!")
+	}
 	muAction1.Lock()
 	if didAction1 {
 		t.Error("Cancel: Action1 was executed!")
