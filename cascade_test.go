@@ -466,6 +466,7 @@ func TestCascade_Kill(t *testing.T) {
 	muAction1 := sync.Mutex{}
 	muAction2 := sync.Mutex{}
 	muAction3 := sync.Mutex{}
+	wgLaunched := sync.WaitGroup{}
 
 	action1 := func() {
 		muAction1.Lock()
@@ -504,6 +505,8 @@ func TestCascade_Kill(t *testing.T) {
 	cas.DoFirstOnKill(action2)
 	child.DoOnKill(action1)
 
+	wgLaunched.Add(2)
+
 	go func() {
 		cas.Mark()
 		defer func() {
@@ -512,7 +515,7 @@ func TestCascade_Kill(t *testing.T) {
 			mu.Unlock()
 			cas.UnMark()
 		}()
-
+		wgLaunched.Done()
 		<-cas.Dying()
 	}()
 
@@ -524,10 +527,11 @@ func TestCascade_Kill(t *testing.T) {
 			mu.Unlock()
 			child.UnMark()
 		}()
-
+		wgLaunched.Done()
 		<-child.Dying()
 	}()
 
+	wgLaunched.Wait()
 	go cas.Kill()
 	ok := didExitBeforeTime(cas, 1*time.Second)
 	if !ok {
@@ -630,6 +634,7 @@ func TestCascade_Cancel(t *testing.T) {
 	muAction1 := sync.Mutex{}
 	muAction2 := sync.Mutex{}
 	muAction3 := sync.Mutex{}
+	wgLaunched := sync.WaitGroup{}
 
 	action1 := func() {
 		muAction1.Lock()
@@ -671,6 +676,8 @@ func TestCascade_Cancel(t *testing.T) {
 	cas.DoFirstOnKill(action2)
 	child.DoOnKill(action1)
 
+	wgLaunched.Add(2)
+
 	go func() {
 		cas.Mark()
 		defer func() {
@@ -679,7 +686,7 @@ func TestCascade_Cancel(t *testing.T) {
 			mu.Unlock()
 			cas.UnMark()
 		}()
-
+		wgLaunched.Done()
 		<-cas.Dying()
 	}()
 
@@ -691,10 +698,11 @@ func TestCascade_Cancel(t *testing.T) {
 			mu.Unlock()
 			child.UnMark()
 		}()
-
+		wgLaunched.Done()
 		<-child.Dying()
 	}()
 
+	wgLaunched.Wait()
 	go cas.Cancel()
 	ok := didExitBeforeTime(cas, 1*time.Second)
 	if !ok {

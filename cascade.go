@@ -510,8 +510,7 @@ func (c *Cascade) Mark() {
 	c.muTracked.Lock()
 	c.tracked++
 	c.muTracked.Unlock()
-	c.muDead.RLock()
-	if c.isDead {
+	if c.IsDead() {
 		c.muTracked.RLock()
 		if c.tracked == 0 {
 			c.onceDead.Do(func() {
@@ -520,7 +519,6 @@ func (c *Cascade) Mark() {
 		}
 		c.muTracked.RUnlock()
 	}
-	c.muDead.RUnlock()
 }
 
 // UnMark removes the mark from a goroutine being tracked by a Cascade.
@@ -532,8 +530,7 @@ func (c *Cascade) UnMark() {
 	c.muTracked.Lock()
 	c.tracked--
 	c.muTracked.Unlock()
-	c.muDead.RLock()
-	if c.isDead {
+	if c.IsDead() {
 		c.muTracked.RLock()
 		if c.tracked == 0 {
 			c.onceDead.Do(func() {
@@ -542,7 +539,6 @@ func (c *Cascade) UnMark() {
 		}
 		c.muTracked.RUnlock()
 	}
-	c.muDead.RUnlock()
 }
 
 // Error returns the error set by one of the `WithError` functions.
