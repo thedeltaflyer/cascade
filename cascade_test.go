@@ -1417,8 +1417,38 @@ func verifyCascadeEndState(t *testing.T, c *Cascade, hasParent bool, numChildren
 	}
 	c.muChildren.Unlock()
 
-	isDead := false
+	verifyDeadState(t, c, wantDead)
 
+	if numActions >= 0 {
+		if len(c.actions) != numActions {
+			t.Errorf("Cascade should have %v Actions, it has %v", numActions, len(c.actions))
+		}
+	}
+
+	if hasContext == (c.ctx == nil) {
+		t.Errorf("Cascade Should Have Context: %v, Cascade has Context: %v", hasContext, c.ctx != nil)
+	}
+
+	c.muCtx.Lock()
+	if numTrackedContexts >= 0 {
+		if len(c.trackedCtx) != numTrackedContexts {
+			t.Errorf("Cascade should have %v Tracked Contexts, it has %v", numTrackedContexts, len(c.trackedCtx))
+		}
+	}
+	c.muCtx.Unlock()
+
+	if hasError == (c.err == nil) {
+		if c.err != nil {
+			t.Errorf("Cascade Should Have Error: %v, Cascade has Error: %v", hasError, c.err)
+		} else {
+			t.Errorf("Cascade Should Have Error: %v, Cascade has Error: %v", hasError, c.err != nil)
+		}
+
+	}
+}
+
+func verifyDeadState(t *testing.T, c *Cascade, wantDead bool) {
+	isDead := false
 	select {
 	case <-c.Dying():
 		if !wantDead {
@@ -1461,32 +1491,5 @@ func verifyCascadeEndState(t *testing.T, c *Cascade, hasParent bool, numChildren
 		case <-time.After(2 * time.Second):
 			t.Error("c.Hold() Timed Out!")
 		}
-	}
-
-	if numActions >= 0 {
-		if len(c.actions) != numActions {
-			t.Errorf("Cascade should have %v Actions, it has %v", numActions, len(c.actions))
-		}
-	}
-
-	if hasContext == (c.ctx == nil) {
-		t.Errorf("Cascade Should Have Context: %v, Cascade has Context: %v", hasContext, c.ctx != nil)
-	}
-
-	c.muCtx.Lock()
-	if numTrackedContexts >= 0 {
-		if len(c.trackedCtx) != numTrackedContexts {
-			t.Errorf("Cascade should have %v Tracked Contexts, it has %v", numTrackedContexts, len(c.trackedCtx))
-		}
-	}
-	c.muCtx.Unlock()
-
-	if hasError == (c.err == nil) {
-		if c.err != nil {
-			t.Errorf("Cascade Should Have Error: %v, Cascade has Error: %v", hasError, c.err)
-		} else {
-			t.Errorf("Cascade Should Have Error: %v, Cascade has Error: %v", hasError, c.err != nil)
-		}
-
 	}
 }
