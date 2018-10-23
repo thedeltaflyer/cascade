@@ -65,6 +65,62 @@ func TestWithContext(t *testing.T) {
 
 }
 
+func TestWithContextKillCascade(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.TODO())
+
+	cas, ctx1 := WithContext(ctx)
+
+	verifyCascadeEndState(t, cas, false, 0, false, 0, true, 1, false)
+
+	select {
+	case <-ctx.Done():
+		t.Error("_WithContext: Root Context was canceled early!")
+	default:
+	}
+	select {
+	case <-ctx1.Done():
+		t.Error("_WithContext: Context1 was canceled early!")
+	default:
+	}
+
+	cas1, ctx2 := WithContext(ctx1)
+
+	verifyCascadeEndState(t, cas1, false, 0, false, 0, true, 1, false)
+
+	select {
+	case <-ctx2.Done():
+		t.Error("_WithContext: Context2 was canceled early!")
+	default:
+	}
+
+	go cas.Kill()
+
+	okCas := didExitBeforeTime(cas, 1*time.Second)
+	okCas1 := didExitBeforeTime(cas1, 1*time.Second)
+	if !okCas {
+		t.Error("_WithContext: Cas got stuck!")
+	}
+	if !okCas1 {
+		t.Error("_WithContext: Cas1 got stuck!")
+	}
+
+	select {
+	case <-ctx1.Done():
+	default:
+		t.Error("_WithContext: Context1 was not Cancelled!")
+	}
+	select {
+	case <-ctx2.Done():
+	default:
+		t.Error("_WithContext: Context2 was not Cancelled!")
+	}
+
+	cancel()
+
+	verifyCascadeEndState(t, cas1, false, 0, true, 0, true, 0, false)
+
+}
+
 func TestCascade_WithContext(t *testing.T) {
 	cas := RootCascade()
 	ctx, cancel := context.WithCancel(context.TODO())
