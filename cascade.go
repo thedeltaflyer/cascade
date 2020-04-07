@@ -22,7 +22,7 @@ import (
 )
 
 // Version is the current version of Cascade.
-const Version string = "0.0.2"
+const Version string = "1.0.0"
 
 // Cascade is the core structure of the cascade package. It contains all of the
 // non-public resources used to maintain all tracked routines.
